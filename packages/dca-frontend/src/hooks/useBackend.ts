@@ -36,9 +36,14 @@ export interface CreateDCARequest {
   purchaseIntervalHuman: string;
 }
 
-export interface CreateSettlementRequest {
-  fromAddress: string;
-  toAddress: string;
+export interface CreateOptionsTradeRequest {
+  depositToken: string;
+  vaultAddress: string;
+  expiry: Date;
+  strikeThreshold: number;
+  minimumApy: number;
+  depositAmount: string;
+  frequency: string;
 }
 
 export const useBackend = () => {
@@ -126,21 +131,21 @@ export const useBackend = () => {
     [sendRequest]
   );
 
-  // Settlement functions
-  const createSettlement = useCallback(
-    async (settlement: CreateSettlementRequest) => {
-      return sendRequest<unknown>('/settlement', 'POST', settlement);
+  // Options trading functions
+  const createOptionsTrade = useCallback(
+    async (optionsTrade: CreateOptionsTradeRequest) => {
+      return sendRequest<unknown>('/options-trade', 'POST', optionsTrade);
     },
     [sendRequest]
   );
 
-  const getSettlements = useCallback(async () => {
-    return sendRequest<unknown[]>('/settlements', 'GET');
+  const getOptionsTrades = useCallback(async () => {
+    return sendRequest<unknown[]>('/options-trades', 'GET');
   }, [sendRequest]);
 
-  const cancelSettlement = useCallback(
-    async (settlementId: string) => {
-      return sendRequest<unknown>(`/settlements/${settlementId}`, 'DELETE');
+  const cancelOptionsTrade = useCallback(
+    async (tradeId: string) => {
+      return sendRequest<unknown>(`/options-trades/${tradeId}`, 'DELETE');
     },
     [sendRequest]
   );
@@ -153,8 +158,8 @@ export const useBackend = () => {
     enableDCA,
     getDCAs,
     getJwt,
-    createSettlement,
-    getSettlements,
-    cancelSettlement,
+    createOptionsTrade,
+    getOptionsTrades,
+    cancelOptionsTrade,
   };
 };

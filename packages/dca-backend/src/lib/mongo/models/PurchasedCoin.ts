@@ -1,7 +1,29 @@
 import { Schema, model } from 'mongoose';
 
-// Settlement model for ETH price-based settlements
-const settlementSchemaDefinition = {
+// Options trade model for options trading
+const optionsTradeSchemaDefinition = {
+  annualizedPremium: {
+    type: Number,
+  },
+  currentSpot: {
+    type: Number,
+  },
+  depositAmount: {
+    required: true,
+    type: String,
+    validate: {
+      message: 'Deposit amount must be a valid decimal number',
+      validator(v: string) {
+        return /^\d*\.?\d+$/.test(v);
+      },
+    },
+  },
+  depositToken: {
+    lowercase: true,
+    match: /^0x[a-fA-F0-9]{40}$/,
+    required: true,
+    type: String,
+  },
   ethAddress: {
     index: true,
     lowercase: true,
@@ -9,67 +31,55 @@ const settlementSchemaDefinition = {
     required: true,
     type: String,
   },
-  ethPrice: {
-    required: true,
-    type: Number,
-  },
   executed: {
     default: false,
     type: Boolean,
   },
-  fromAddress: {
-    lowercase: true,
-    match: /^0x[a-fA-F0-9]{40}$/,
+  expiry: {
+    required: true,
+    type: Date,
+  },
+  frequency: {
+    enum: ['15 minutes', '1 hour', '12 hours', '1 day'],
     required: true,
     type: String,
   },
-  legsHash: {
-    type: String,
-  },
-  toAddress: {
-    lowercase: true,
-    match: /^0x[a-fA-F0-9]{40}$/,
+  minimumApy: {
+    max: 1000,
+    min: 0,
     required: true,
-    type: String,
+    type: Number,
+  },
+  optionPremium: {
+    type: Number,
+  },
+  strikeThreshold: {
+    max: 1000,
+    min: 0,
+    required: true,
+    type: Number,
   },
   txHash: {
     sparse: true,
     type: String,
     unique: true,
   },
-  usdcAmount: {
+  vaultAddress: {
+    lowercase: true,
+    match: /^0x[a-fA-F0-9]{40}$/,
     required: true,
     type: String,
-    validate: {
-      message: 'USDC amount must be a valid decimal number',
-      validator(v: string) {
-        return /^\d*\.?\d+$/.test(v);
-      },
-    },
-  },
-  validUntil: {
-    required: true,
-    type: Date,
-  },
-  wethAmount: {
-    required: true,
-    type: String,
-    validate: {
-      message: 'WETH amount must be a valid decimal number',
-      validator(v: string) {
-        return /^\d*\.?\d+$/.test(v);
-      },
-    },
   },
 } as const;
 
-const SettlementSchema = new Schema(settlementSchemaDefinition, { timestamps: true });
+const OptionsTradeSchema = new Schema(optionsTradeSchemaDefinition, { timestamps: true });
 
 // Create compound indices for common query patterns
-SettlementSchema.index({ createdAt: 1, ethAddress: 1 });
-SettlementSchema.index({ executed: 1, validUntil: 1 });
+OptionsTradeSchema.index({ createdAt: 1, ethAddress: 1 });
+OptionsTradeSchema.index({ executed: 1, expiry: 1 });
+OptionsTradeSchema.index({ expiry: 1, vaultAddress: 1 });
 
-export const Settlement = model('Settlement', SettlementSchema);
+export const OptionsTrade = model('OptionsTrade', OptionsTradeSchema);
 
 // Keep the old model for backward compatibility during migration
 const purchasedCoinSchemaDefinition = {

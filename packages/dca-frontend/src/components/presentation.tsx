@@ -30,7 +30,7 @@ export const Presentation: React.FC = () => {
               color: 'var(--footer-text-color, #121212)',
             }}
           >
-            Vincent wBTC DCA Agent
+            Vincent Options Trading Agent
           </CardTitle>
           <CardDescription
             className="uppercase tracking-widest"
@@ -41,7 +41,7 @@ export const Presentation: React.FC = () => {
               color: '#FF4205',
             }}
           >
-            Automated Dollar-Cost Averaging
+            Automated Options Trading
           </CardDescription>
         </CardHeader>
 
@@ -55,7 +55,7 @@ export const Presentation: React.FC = () => {
               color: 'var(--footer-text-color, #121212)',
             }}
           >
-            Secure and verifiable DCA strategies for your crypto investments on Base.
+            Secure and verifiable options trading strategies for your crypto investments on Base.
           </p>
 
           <p
@@ -65,8 +65,8 @@ export const Presentation: React.FC = () => {
               color: 'var(--footer-text-color, #121212)',
             }}
           >
-            This application allows you to set up automated dollar-cost-averaging for your wBTC
-            investments on Base. Support for more chains coming soon.
+            This application allows you to set up automated options trading with smart parameters
+            including strike thresholds, minimum APY requirements, and frequency-based execution.
           </p>
 
           <p
@@ -76,7 +76,7 @@ export const Presentation: React.FC = () => {
               color: 'var(--footer-text-color, #121212)',
             }}
           >
-            To get started, connect with Vincent to manage your DCA schedules.
+            To get started, connect with Vincent to manage your options trading strategies.
           </p>
         </CardContent>
 
