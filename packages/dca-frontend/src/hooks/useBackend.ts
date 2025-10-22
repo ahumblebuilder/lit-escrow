@@ -36,6 +36,11 @@ export interface CreateDCARequest {
   purchaseIntervalHuman: string;
 }
 
+export interface CreateSettlementRequest {
+  fromAddress: string;
+  toAddress: string;
+}
+
 export const useBackend = () => {
   const { authInfo } = useJwtContext();
   const vincentWebAuthClient = useVincentWebAuthClient(VITE_APP_ID);
@@ -121,6 +126,25 @@ export const useBackend = () => {
     [sendRequest]
   );
 
+  // Settlement functions
+  const createSettlement = useCallback(
+    async (settlement: CreateSettlementRequest) => {
+      return sendRequest<unknown>('/settlement', 'POST', settlement);
+    },
+    [sendRequest]
+  );
+
+  const getSettlements = useCallback(async () => {
+    return sendRequest<unknown[]>('/settlements', 'GET');
+  }, [sendRequest]);
+
+  const cancelSettlement = useCallback(
+    async (settlementId: string) => {
+      return sendRequest<unknown>(`/settlements/${settlementId}`, 'DELETE');
+    },
+    [sendRequest]
+  );
+
   return {
     createDCA,
     deleteDCA,
@@ -129,5 +153,8 @@ export const useBackend = () => {
     enableDCA,
     getDCAs,
     getJwt,
+    createSettlement,
+    getSettlements,
+    cancelSettlement,
   };
 };

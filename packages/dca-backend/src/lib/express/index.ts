@@ -14,6 +14,13 @@ import {
   handleCreateScheduleRoute,
   handleDeleteScheduleRoute,
   handleEditScheduleRoute,
+  handleListSettlementsRoute,
+  handleCreateSettlementRoute,
+  handleGetSettlementRoute,
+  handleUpdateSettlementExecutionRoute,
+  handleCancelSettlementRoute,
+  handleDisableSettlementRoute,
+  handleEnableSettlementRoute,
 } from './schedules';
 import { userKey, VincentAuthenticatedRequest } from './types';
 import { env } from '../env';
@@ -83,6 +90,45 @@ export const registerRoutes = (app: Express) => {
     middleware,
     setSentryUserMiddleware,
     handler(handleDeleteScheduleRoute)
+  );
+
+  // Settlement routes
+  app.get('/settlements', middleware, setSentryUserMiddleware, handler(handleListSettlementsRoute));
+  app.post(
+    '/settlement',
+    middleware,
+    setSentryUserMiddleware,
+    handler(handleCreateSettlementRoute)
+  );
+  app.get(
+    '/settlements/:settlementId',
+    middleware,
+    setSentryUserMiddleware,
+    handler(handleGetSettlementRoute)
+  );
+  app.put(
+    '/settlements/:settlementId/execute',
+    middleware,
+    setSentryUserMiddleware,
+    handler(handleUpdateSettlementExecutionRoute)
+  );
+  app.delete(
+    '/settlements/:settlementId',
+    middleware,
+    setSentryUserMiddleware,
+    handler(handleCancelSettlementRoute)
+  );
+  app.put(
+    '/settlements/:settlementId/disable',
+    middleware,
+    setSentryUserMiddleware,
+    handler(handleDisableSettlementRoute)
+  );
+  app.put(
+    '/settlements/:settlementId/enable',
+    middleware,
+    setSentryUserMiddleware,
+    handler(handleEnableSettlementRoute)
   );
 
   serviceLogger.info(`Routes registered`);

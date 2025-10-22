@@ -1,3 +1,4 @@
-import * as executeDCASwapJobDef from './executeDCASwap';
+import * as executeDCASwapJobDef from './executeDCASwap/index.js';
+import * as executeSettlementJobDef from './executeSettlement/index.js';
 
-export { executeDCASwapJobDef };
+export { executeDCASwapJobDef, executeSettlementJobDef };

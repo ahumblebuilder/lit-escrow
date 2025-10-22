@@ -122,7 +122,7 @@ export async function createJob(
   const agenda = getAgenda();
 
   // Create a new job instance
-  const job = agenda.create<executeDCASwapJobDef.JobParams>(executeDCASwapJobDef.jobName, {
+  const job = agenda.create<executeDCASwapJobDef.JobParams>('executeDCASwap', {
     ...data,
     updatedAt: new Date(),
   });
