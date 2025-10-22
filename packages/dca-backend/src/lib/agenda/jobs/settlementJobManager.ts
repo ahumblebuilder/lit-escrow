@@ -1,6 +1,6 @@
 import { Agenda } from '@whisthub/agenda';
 
-import { Settlement } from '../../mongo/models/PurchasedCoin';
+import { OptionsTrade } from '../../mongo/models/PurchasedCoin';
 
 const { VINCENT_APP_ID } = process.env;
 
@@ -38,15 +38,15 @@ export async function createSettlementJob(data: SettlementJobData, options: { in
 }
 
 export async function listSettlementsByEthAddress({ ethAddress }: { ethAddress: string }) {
-  return Settlement.find({ ethAddress }).sort({ createdAt: -1 });
+  return OptionsTrade.find({ ethAddress }).sort({ createdAt: -1 });
 }
 
 export async function getSettlementById(settlementId: string) {
-  return Settlement.findById(settlementId);
+  return OptionsTrade.findById(settlementId);
 }
 
 export async function updateSettlementExecution(settlementId: string, txHash: string) {
-  return Settlement.findByIdAndUpdate(settlementId, { txHash, executed: true }, { new: true });
+  return OptionsTrade.findByIdAndUpdate(settlementId, { txHash, executed: true }, { new: true });
 }
 
 export async function cancelSettlementJob({
