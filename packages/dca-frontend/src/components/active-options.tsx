@@ -38,7 +38,7 @@ export const ActiveOptions: React.FC = () => {
   const loadOptionsTrades = useCallback(async () => {
     try {
       const data = await getOptionsTrades();
-      setOptionsTrades(data);
+      setOptionsTrades(data as OptionsTrade[]);
     } catch (error) {
       console.error('Failed to load options trades:', error);
     } finally {
