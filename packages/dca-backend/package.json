@@ -51,7 +51,7 @@
     "@lit-protocol/types": "^7.3.0",
     "@lit-protocol/vincent-ability-erc20-approval": "3.1.0",
     "@lit-protocol/vincent-ability-uniswap-swap": "5.0.0",
-    "@lit-protocol/vincent-ability-evm-transaction-signer": "1.0.0",
+    "@lit-protocol/vincent-ability-evm-transaction-signer": "0.1.4",
     "@ahumblebuilder/vincent-ability-options": "latest",
     "@lit-protocol/vincent-app-sdk": "2.2.1",
     "@lit-protocol/vincent-contracts-sdk": "^1.0.1",
