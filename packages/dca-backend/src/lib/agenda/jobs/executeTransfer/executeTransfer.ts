@@ -49,7 +49,7 @@ async function executeTransfer({
 }): Promise<`0x${string}`> {
   const erc20TransferToolClient = getErc20TransferToolClient();
   const transferParams = {
-    chain: SEPOLIA_CHAIN_ID.toString(),
+    chain: 'sepolia',
     rpcUrl: SEPOLIA_RPC_URL,
     tokenAddress,
     to: recipientAddress,
@@ -62,7 +62,7 @@ async function executeTransfer({
   consola.log('ERC20 Transfer Tool Parameters:', {
     transferParams,
     transferContext,
-    chain: SEPOLIA_CHAIN_ID.toString(),
+    chain: 'sepolia',
     rpcUrl: SEPOLIA_RPC_URL,
   });
 

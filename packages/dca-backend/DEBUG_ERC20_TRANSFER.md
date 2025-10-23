@@ -23,14 +23,31 @@ The ERC20 transfer tool precheck can fail for several reasons:
   amount: '1000000000000000000'
 }
 
-// ✅ Correct
+// ❌ Still Wrong (chain ID as string)
 {
-  chain: '11155111',           // String, not number
+  chain: '11155111',           // Should be chain name, not ID
+  to: '0x...',
+  tokenAddress: '0x...',
+  amount: '1000000000000000000'
+}
+
+// ✅ Correct (chain name string)
+{
+  chain: 'sepolia',            // Chain name, not ID
   to: '0x...',                 // 'to' not 'recipientAddress'
   tokenAddress: '0x...',
   amount: '1000000000000000000'
 }
 ```
+
+**Supported Chain Names:**
+
+- `'ethereum'` (Mainnet)
+- `'sepolia'` (Sepolia testnet)
+- `'base'` (Base mainnet)
+- `'base-sepolia'` (Base Sepolia testnet)
+
+````
 
 #### **Token Contract Issues**
 
@@ -70,7 +87,7 @@ curl -X POST https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY \
     ],
     "id": 1
   }'
-```
+````
 
 #### **Check User Balance**
 
