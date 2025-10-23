@@ -21,7 +21,7 @@ function AppContent() {
   return (
     <div className="grid grid-rows-[auto_1fr_auto] min-h-screen overflow-x-hidden">
       <DottedBackground />
-      <Header title="Vincent DCA" />
+      <Header title="Vincent Transfer Scheduler" />
       {authInfo ? <Home /> : <Login />}
       <Footer />
     </div>
