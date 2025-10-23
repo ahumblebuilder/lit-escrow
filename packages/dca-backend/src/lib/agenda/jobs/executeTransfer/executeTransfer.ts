@@ -98,6 +98,7 @@ export async function executeTransferJob(job: JobType, sentryScope: Sentry.Scope
       recipientAddress,
       tokenAddress,
       amount,
+      tokenContractAddress: SEPOLIA_TOKEN_ADDRESS,
     });
 
     consola.debug('Fetching user token balance...');
@@ -108,15 +109,32 @@ export async function executeTransferJob(job: JobType, sentryScope: Sentry.Scope
 
     sentryScope.addBreadcrumb({
       data: {
-        tokenBalance,
+        tokenBalance: ethers.utils.formatUnits(tokenBalance, 18),
+        tokenAddress: SEPOLIA_TOKEN_ADDRESS,
+        ethAddress,
       },
-      message: 'User token balance',
+      message: 'User token balance retrieved',
+    });
+
+    consola.log('Balance check results:', {
+      account: ethAddress,
+      token: SEPOLIA_TOKEN_ADDRESS,
+      balance: ethers.utils.formatUnits(tokenBalance, 18),
+      requestedAmount: amount,
     });
 
     const _amount = ethers.utils.parseUnits(amount.toFixed(18), 18); // Assuming 18 decimals
     if (tokenBalance.lt(_amount)) {
+      const currentBalance = ethers.utils.formatUnits(tokenBalance, 18);
+      const requiredAmount = ethers.utils.formatUnits(_amount, 18);
       throw new Error(
-        `Not enough balance for account ${ethAddress} - please fund this account with tokens to transfer`
+        `Insufficient token balance for transfer:\n` +
+          `  Account: ${ethAddress}\n` +
+          `  Token: ${SEPOLIA_TOKEN_ADDRESS}\n` +
+          `  Current Balance: ${currentBalance} tokens\n` +
+          `  Required Amount: ${requiredAmount} tokens\n` +
+          `  Shortfall: ${ethers.utils.formatUnits(_amount.sub(tokenBalance), 18)} tokens\n` +
+          `Please fund this account with more tokens to proceed with the transfer.`
       );
     }
     if (!userPermittedAppVersion) {
@@ -148,6 +166,8 @@ export async function executeTransferJob(job: JobType, sentryScope: Sentry.Scope
       amount,
       userPermittedAppVersion,
       tokenBalance: ethers.utils.formatUnits(tokenBalance, 18),
+      requiredAmount: ethers.utils.formatUnits(_amount, 18),
+      hasEnoughBalance: tokenBalance.gte(_amount),
     });
 
     const transferHash = await executeTransfer({
@@ -173,7 +193,14 @@ export async function executeTransferJob(job: JobType, sentryScope: Sentry.Scope
     });
     await transfer.save();
 
-    consola.debug(`Successfully transferred ${amount} tokens at tx hash ${transferHash}`);
+    consola.log(`Successfully transferred ${amount} tokens`, {
+      from: ethAddress,
+      to: recipientAddress,
+      token: tokenAddress,
+      amount: amount,
+      txHash: transferHash,
+      balanceBefore: ethers.utils.formatUnits(tokenBalance, 18),
+    });
   } catch (e) {
     // Catch-and-rethrow is usually an antipattern, but Agenda doesn't log failed job reasons to console
     // so this is our chance to log the job failure details using Consola before we throw the error
