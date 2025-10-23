@@ -5,7 +5,7 @@ import { ethers } from 'ethers';
 
 import { IRelayPKP } from '@lit-protocol/types';
 
-import { type AppData, assertPermittedVersion } from '../../jobVersion';
+import { type AppData, assertPermittedVersion } from '../jobVersion';
 import {
   balanceOf,
   getERC20Contract,
