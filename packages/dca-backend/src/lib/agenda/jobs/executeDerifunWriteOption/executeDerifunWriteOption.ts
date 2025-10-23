@@ -11,6 +11,7 @@ import {
   getERC20Contract,
   getUserPermittedVersion,
   handleOperationExecution,
+  getVaultTokenInfo,
 } from './utils';
 import { getDerifunWriteOptionToolClient } from './vincentAbilities';
 import { env } from '../../../env';
@@ -88,14 +89,21 @@ async function executeDerifunWriteOption({
   consola.log('Derifun Write Option Tool Parameters:', {
     writeOptionParams,
     writeOptionContext,
-    chain: 'sepolia',
     rpcUrl: SEPOLIA_RPC_URL,
   });
 
+  consola.log('Calling Derifun write option tool precheck...');
   const writeOptionPrecheckResult = await derifunWriteOptionToolClient.precheck(
     writeOptionParams,
     writeOptionContext
   );
+
+  consola.log('Derifun write option precheck result:', {
+    success: writeOptionPrecheckResult.success,
+    error: writeOptionPrecheckResult.error,
+    result: writeOptionPrecheckResult.result,
+  });
+
   if (!writeOptionPrecheckResult.success) {
     consola.error('Derifun write option tool precheck failed:', {
       success: writeOptionPrecheckResult.success,
@@ -210,11 +218,40 @@ export async function executeDerifunWriteOptionJob(
       userPermittedAppVersion,
     });
 
-    const _amount = ethers.utils.parseUnits(amount.toFixed(18), 18);
-    const _strike = ethers.utils.parseUnits(strike.toFixed(18), 18);
-    const _premiumPerUnit = ethers.utils.parseUnits(premiumPerUnit.toFixed(18), 18);
-    const _minDeposit = ethers.utils.parseUnits(minDeposit.toFixed(18), 18);
-    const _maxDeposit = ethers.utils.parseUnits(maxDeposit.toFixed(18), 18);
+    // Get vault token info to determine correct decimals
+    consola.log('Fetching vault token information...');
+    const vaultTokenInfo = await getVaultTokenInfo(vault, sepoliaProvider);
+
+    consola.log('Vault token info:', {
+      depositToken: vaultTokenInfo.depositToken,
+      conversionToken: vaultTokenInfo.conversionToken,
+      premiumToken: vaultTokenInfo.premiumToken,
+      depositTokenDecimals: vaultTokenInfo.depositTokenDecimals,
+      conversionTokenDecimals: vaultTokenInfo.conversionTokenDecimals,
+      premiumTokenDecimals: vaultTokenInfo.premiumTokenDecimals,
+    });
+
+    // Parse amounts using correct decimals
+    const _amount = ethers.utils.parseUnits(
+      amount.toFixed(vaultTokenInfo.depositTokenDecimals),
+      vaultTokenInfo.depositTokenDecimals
+    );
+    const _strike = ethers.utils.parseUnits(
+      strike.toFixed(vaultTokenInfo.conversionTokenDecimals),
+      vaultTokenInfo.conversionTokenDecimals
+    );
+    const _premiumPerUnit = ethers.utils.parseUnits(
+      premiumPerUnit.toFixed(vaultTokenInfo.premiumTokenDecimals),
+      vaultTokenInfo.premiumTokenDecimals
+    );
+    const _minDeposit = ethers.utils.parseUnits(
+      minDeposit.toFixed(vaultTokenInfo.depositTokenDecimals),
+      vaultTokenInfo.depositTokenDecimals
+    );
+    const _maxDeposit = ethers.utils.parseUnits(
+      maxDeposit.toFixed(vaultTokenInfo.depositTokenDecimals),
+      vaultTokenInfo.depositTokenDecimals
+    );
 
     const writeOptionHash = await executeDerifunWriteOption({
       delegatorAddress: ethAddress as `0x${string}`,
@@ -239,12 +276,12 @@ export async function executeDerifunWriteOptionJob(
     const writeOption = new DerifunWriteOptionJob({
       ethAddress,
       vault,
-      amount: amount.toFixed(18),
-      strike: strike.toFixed(18),
+      amount: amount.toFixed(vaultTokenInfo.depositTokenDecimals),
+      strike: strike.toFixed(vaultTokenInfo.conversionTokenDecimals),
       expiry,
-      premiumPerUnit: premiumPerUnit.toFixed(18),
-      minDeposit: minDeposit.toFixed(18),
-      maxDeposit: maxDeposit.toFixed(18),
+      premiumPerUnit: premiumPerUnit.toFixed(vaultTokenInfo.premiumTokenDecimals),
+      minDeposit: minDeposit.toFixed(vaultTokenInfo.depositTokenDecimals),
+      maxDeposit: maxDeposit.toFixed(vaultTokenInfo.depositTokenDecimals),
       validUntil,
       quoteId,
       signature,
