@@ -1,6 +1,8 @@
 import consola from 'consola';
-import { vincentAbility as erc20ApprovalVincentAbility } from '@lit-protocol/vincent-ability-erc20-approval';
+import pkg from '@lit-protocol/vincent-ability-erc20-approval';
 import { getVincentAbilityClient } from '@lit-protocol/vincent-app-sdk/abilityClient';
+
+const { bundledVincentAbility: erc20ApprovalVincentAbility } = pkg;
 
 import { delegateeSigner } from './signer';
 
