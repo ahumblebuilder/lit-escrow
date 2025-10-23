@@ -26,7 +26,7 @@ export const env = createEnv({
     ALCHEMY_API_KEY: z.string().optional(),
     ALCHEMY_POLICY_ID: z.string().optional(),
     ALLOWED_AUDIENCE: z.string().url(),
-    BASE_RPC_URL: z.string().url(),
+    SEPOLIA_RPC_URL: z.string().url(),
     CHRONICLE_YELLOWSTONE_RPC: z.string().url().default(LIT_RPC.CHRONICLE_YELLOWSTONE),
     CORS_ALLOWED_DOMAIN: z.string().url(),
     DEFAULT_TX_CONFIRMATIONS: z.coerce.number().default(6),

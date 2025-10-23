@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/node';
 import consola from 'consola';
 
 import { createAgenda, getAgenda } from './agenda/agendaClient';
-import { executeDCASwapJobDef } from './agenda/jobs';
+import { executeTransferJobDef } from './agenda/jobs';
 
 // Function to create and configure a new agenda instance
 export async function startWorker() {
@@ -10,12 +10,12 @@ export async function startWorker() {
 
   const agenda = getAgenda();
 
-  agenda.define(executeDCASwapJobDef.jobName, async (job: executeDCASwapJobDef.JobType) =>
+  agenda.define('executeTransfer', async (job: executeTransferJobDef.JobType) =>
     Sentry.withIsolationScope(async (scope) => {
       // TODO: add job-aware logic such as cool-downs in case of repeated failures here
 
       try {
-        await executeDCASwapJobDef.processJob(job, scope);
+        await executeTransferJobDef.executeTransferJob(job, scope);
       } catch (err) {
         scope.captureException(err);
         const error = err as Error;
@@ -30,7 +30,7 @@ export async function startWorker() {
           consola.log(`Disabling job due to fatal error: ${error.message}`);
           job.disable();
           await job.save();
-          throw new Error(`DCA schedule disabled due to fatal error: ${error.message}`);
+          throw new Error(`Transfer job disabled due to fatal error: ${error.message}`);
         }
         // Other errors just bubble up to the job doc
         throw err;

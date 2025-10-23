@@ -6,15 +6,7 @@ import helmet from 'helmet';
 import { createVincentUserMiddleware } from '@lit-protocol/vincent-app-sdk/expressMiddleware';
 import { getAppInfo, getPKPInfo, isAppUser } from '@lit-protocol/vincent-app-sdk/jwt';
 
-import { handleListPurchasesRoute } from './purchases';
-import {
-  handleListSchedulesRoute,
-  handleEnableScheduleRoute,
-  handleDisableScheduleRoute,
-  handleCreateScheduleRoute,
-  handleDeleteScheduleRoute,
-  handleEditScheduleRoute,
-} from './schedules';
+import { handleCreateTransferJobRoute, handleCancelTransferJobRoute } from './transfers';
 import { userKey, VincentAuthenticatedRequest } from './types';
 import { env } from '../env';
 import { serviceLogger } from '../logger';
@@ -57,32 +49,17 @@ export const registerRoutes = (app: Express) => {
   }
   app.use(cors(corsConfig));
 
-  app.get('/purchases', middleware, setSentryUserMiddleware, handler(handleListPurchasesRoute));
-  app.get('/schedules', middleware, setSentryUserMiddleware, handler(handleListSchedulesRoute));
-  app.post('/schedule', middleware, setSentryUserMiddleware, handler(handleCreateScheduleRoute));
-  app.put(
-    '/schedules/:scheduleId',
+  app.post(
+    '/transfer-job',
     middleware,
     setSentryUserMiddleware,
-    handler(handleEditScheduleRoute)
-  );
-  app.put(
-    '/schedules/:scheduleId/enable',
-    middleware,
-    setSentryUserMiddleware,
-    handler(handleEnableScheduleRoute)
-  );
-  app.put(
-    '/schedules/:scheduleId/disable',
-    middleware,
-    setSentryUserMiddleware,
-    handler(handleDisableScheduleRoute)
+    handler(handleCreateTransferJobRoute)
   );
   app.delete(
-    '/schedules/:scheduleId',
+    '/transfer-job/:jobId',
     middleware,
     setSentryUserMiddleware,
-    handler(handleDeleteScheduleRoute)
+    handler(handleCancelTransferJobRoute)
   );
 
   serviceLogger.info(`Routes registered`);
