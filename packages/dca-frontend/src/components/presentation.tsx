@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+import { useJwtContext } from '@lit-protocol/vincent-app-sdk/react';
+
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,12 +17,18 @@ import { Separator } from '@/components/ui/separator';
 import { useBackend } from '@/hooks/useBackend';
 
 export const Presentation: React.FC = () => {
+  const { authInfo } = useJwtContext();
   const { getJwt, createTransferJob } = useBackend();
   const [recipientAddress, setRecipientAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCreateJob = async () => {
+    if (!authInfo?.jwt) {
+      alert('Please connect with Vincent first before creating a transfer job.');
+      return;
+    }
+
     if (!recipientAddress || !amount) {
       alert('Please fill in all fields');
       return;
@@ -87,49 +95,88 @@ export const Presentation: React.FC = () => {
             Schedule automated ERC20 token transfers on Sepolia testnet.
           </p>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="recipient">Recipient Address</Label>
-              <Input
-                id="recipient"
-                type="text"
-                placeholder="0x..."
-                value={recipientAddress}
-                onChange={(e) => setRecipientAddress(e.target.value)}
-              />
-            </div>
+          {authInfo?.jwt ? (
+            <>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="recipient">Recipient Address</Label>
+                  <Input
+                    id="recipient"
+                    type="text"
+                    placeholder="0x..."
+                    value={recipientAddress}
+                    onChange={(e) => setRecipientAddress(e.target.value)}
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="amount">Amount to Transfer</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.000001"
-                placeholder="1.0"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </div>
-          </div>
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount to Transfer</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.000001"
+                    placeholder="1.0"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                </div>
+              </div>
 
-          <p
-            className="text-sm text-center"
-            style={{
-              fontFamily: '"Encode Sans Semi Expanded", system-ui, sans-serif',
-              color: 'var(--footer-text-color, #121212)',
-            }}
-          >
-            This will create a job that transfers the specified amount of tokens every minute.
-          </p>
+              <p
+                className="text-sm text-center"
+                style={{
+                  fontFamily: '"Encode Sans Semi Expanded", system-ui, sans-serif',
+                  color: 'var(--footer-text-color, #121212)',
+                }}
+              >
+                This will create a job that transfers the specified amount of tokens every minute.
+              </p>
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <p
+                className="text-base mb-4"
+                style={{
+                  fontFamily: '"Encode Sans Semi Expanded", system-ui, sans-serif',
+                  color: 'var(--footer-text-color, #121212)',
+                }}
+              >
+                Please connect with Vincent to create transfer jobs.
+              </p>
+              <p
+                className="text-sm"
+                style={{
+                  fontFamily: '"Encode Sans Semi Expanded", system-ui, sans-serif',
+                  color: '#666',
+                }}
+              >
+                You need to authenticate with Vincent and delegate your wallet to use this app.
+              </p>
+            </div>
+          )}
         </CardContent>
 
         <CardFooter className="flex flex-col items-center gap-3 pt-4">
-          <Button onClick={handleCreateJob} variant="primary" size="lg" disabled={isCreating}>
-            {isCreating ? 'Creating Job...' : 'Create Transfer Job'}
-          </Button>
-          <Button onClick={getJwt} variant="outline" size="lg">
-            Connect with Vincent
-          </Button>
+          {authInfo?.jwt ? (
+            <>
+              <Button onClick={handleCreateJob} variant="primary" size="lg" disabled={isCreating}>
+                {isCreating ? 'Creating Job...' : 'Create Transfer Job'}
+              </Button>
+              <p
+                className="text-sm text-center"
+                style={{
+                  color: '#666',
+                  fontFamily: '"Encode Sans Semi Expanded", system-ui, sans-serif',
+                }}
+              >
+                Connected with Vincent ✓
+              </p>
+            </>
+          ) : (
+            <Button onClick={getJwt} variant="primary" size="lg">
+              Connect with Vincent
+            </Button>
+          )}
           <a
             href="https://docs.heyvincent.ai/"
             target="_blank"
