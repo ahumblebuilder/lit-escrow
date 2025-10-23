@@ -59,12 +59,28 @@ async function executeTransfer({
     delegatorPkpEthAddress: delegatorAddress,
   };
 
+  consola.log('ERC20 Transfer Tool Parameters:', {
+    transferParams,
+    transferContext,
+    chainId: SEPOLIA_CHAIN_ID,
+    rpcUrl: SEPOLIA_RPC_URL,
+  });
+
   const transferPrecheckResult = await erc20TransferToolClient.precheck(
     transferParams,
     transferContext
   );
   if (!transferPrecheckResult.success) {
-    throw new Error(`ERC20 transfer tool precheck failed: ${transferPrecheckResult}`);
+    consola.error('ERC20 transfer tool precheck failed:', {
+      success: transferPrecheckResult.success,
+      error: transferPrecheckResult.error,
+      result: transferPrecheckResult.result,
+      transferParams,
+      transferContext,
+    });
+    throw new Error(
+      `ERC20 transfer tool precheck failed: ${JSON.stringify(transferPrecheckResult, null, 2)}`
+    );
   }
 
   const transferExecutionResult = await erc20TransferToolClient.execute(
@@ -73,7 +89,16 @@ async function executeTransfer({
   );
   consola.trace('ERC20 Transfer Vincent Tool Response:', transferExecutionResult);
   if (!transferExecutionResult.success) {
-    throw new Error(`ERC20 transfer tool execution failed: ${transferExecutionResult}`);
+    consola.error('ERC20 transfer tool execution failed:', {
+      success: transferExecutionResult.success,
+      error: transferExecutionResult.error,
+      result: transferExecutionResult.result,
+      transferParams,
+      transferContext,
+    });
+    throw new Error(
+      `ERC20 transfer tool execution failed: ${JSON.stringify(transferExecutionResult, null, 2)}`
+    );
   }
 
   return transferExecutionResult.result.transferTxHash as `0x${string}`;
