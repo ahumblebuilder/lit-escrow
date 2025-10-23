@@ -102,10 +102,24 @@ export const handleCreateDerifunWriteOptionJobRoute = async (
     });
   } catch (error) {
     console.error('Error creating Derifun write option job:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      name: error instanceof Error ? error.name : 'Unknown',
+      cause: error instanceof Error ? error.cause : undefined,
+    });
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({
       error: `Internal server error: ${errorMessage}`,
       success: false,
+      details:
+        process.env.NODE_ENV === 'development'
+          ? {
+              stack: error instanceof Error ? error.stack : undefined,
+              name: error instanceof Error ? error.name : undefined,
+            }
+          : undefined,
     });
   }
 };

@@ -70,32 +70,62 @@ export async function getVaultTokenInfo(
   strike: ethers.BigNumber;
   expiry: ethers.BigNumber;
 }> {
+  console.log('Getting vault token info for address:', vaultAddress);
+
+  // Validate vault address
+  if (!ethers.utils.isAddress(vaultAddress)) {
+    throw new Error(`Invalid vault address: ${vaultAddress}`);
+  }
+
   const vaultContract = getOptionVaultContract(vaultAddress, provider);
 
-  // Get token addresses
-  const [depositToken, conversionToken, premiumToken, strike, expiry] = await Promise.all([
-    getDepositToken(vaultContract),
-    getConversionToken(vaultContract),
-    getPremiumToken(vaultContract),
-    getStrike(vaultContract),
-    getExpiry(vaultContract),
-  ]);
+  try {
+    // Get token addresses
+    console.log('Fetching token addresses from vault...');
+    const [depositToken, conversionToken, premiumToken, strike, expiry] = await Promise.all([
+      getDepositToken(vaultContract),
+      getConversionToken(vaultContract),
+      getPremiumToken(vaultContract),
+      getStrike(vaultContract),
+      getExpiry(vaultContract),
+    ]);
 
-  // Get token decimals
-  const [depositTokenDecimals, conversionTokenDecimals, premiumTokenDecimals] = await Promise.all([
-    getTokenDecimals(depositToken, provider),
-    getTokenDecimals(conversionToken, provider),
-    getTokenDecimals(premiumToken, provider),
-  ]);
+    console.log('Token addresses fetched:', {
+      depositToken,
+      conversionToken,
+      premiumToken,
+    });
 
-  return {
-    depositToken,
-    conversionToken,
-    premiumToken,
-    depositTokenDecimals,
-    conversionTokenDecimals,
-    premiumTokenDecimals,
-    strike,
-    expiry,
-  };
+    // Get token decimals
+    console.log('Fetching token decimals...');
+    const [depositTokenDecimals, conversionTokenDecimals, premiumTokenDecimals] = await Promise.all(
+      [
+        getTokenDecimals(depositToken, provider),
+        getTokenDecimals(conversionToken, provider),
+        getTokenDecimals(premiumToken, provider),
+      ]
+    );
+
+    console.log('Token decimals fetched:', {
+      depositTokenDecimals,
+      conversionTokenDecimals,
+      premiumTokenDecimals,
+    });
+
+    return {
+      depositToken,
+      conversionToken,
+      premiumToken,
+      depositTokenDecimals,
+      conversionTokenDecimals,
+      premiumTokenDecimals,
+      strike,
+      expiry,
+    };
+  } catch (error) {
+    console.error('Error fetching vault token info:', error);
+    throw new Error(
+      `Failed to fetch vault token info: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
 }

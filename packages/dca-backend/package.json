@@ -50,6 +50,7 @@
     "@lit-protocol/lit-node-client": "^7.3.0",
     "@lit-protocol/types": "^7.3.0",
     "@lit-protocol/vincent-ability-erc20-transfer": "latest",
+    "@lit-protocol/vincent-ability-erc20-approval": "latest",
     "@ahumblebuilder/derifun-ability": "latest",
     "@lit-protocol/vincent-app-sdk": "^2.2.3",
     "@lit-protocol/vincent-contracts-sdk": "^1.0.1",

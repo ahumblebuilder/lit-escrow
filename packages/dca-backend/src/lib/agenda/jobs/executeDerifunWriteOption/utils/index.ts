@@ -1,4 +1,5 @@
 export * from './alchemy';
+export * from './erc20-approval';
 export * from './get-erc20-info';
 export * from './get-user-permitted-version';
 export * from './get-vault-token-info';

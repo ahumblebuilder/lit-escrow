@@ -12,6 +12,7 @@ import {
   getUserPermittedVersion,
   handleOperationExecution,
   getVaultTokenInfo,
+  approveDepositToken,
 } from './utils';
 import { getDerifunWriteOptionToolClient } from './vincentAbilities';
 import { env } from '../../../env';
@@ -39,6 +40,7 @@ export type JobParams = {
 const { SEPOLIA_RPC_URL, VINCENT_APP_ID } = env;
 
 const SEPOLIA_CHAIN_ID = 11155111;
+const DERIFUN_VAULT_FACTORY_ADDRESS = '0x07Cf0b6a0591Cff7b45D6c1ba3a42Da49C1630d2'; // Sepolia
 
 const sepoliaProvider = new ethers.providers.StaticJsonRpcProvider(SEPOLIA_RPC_URL);
 
@@ -220,16 +222,32 @@ export async function executeDerifunWriteOptionJob(
 
     // Get vault token info to determine correct decimals
     consola.log('Fetching vault token information...');
-    const vaultTokenInfo = await getVaultTokenInfo(vault, sepoliaProvider);
-
-    consola.log('Vault token info:', {
-      depositToken: vaultTokenInfo.depositToken,
-      conversionToken: vaultTokenInfo.conversionToken,
-      premiumToken: vaultTokenInfo.premiumToken,
-      depositTokenDecimals: vaultTokenInfo.depositTokenDecimals,
-      conversionTokenDecimals: vaultTokenInfo.conversionTokenDecimals,
-      premiumTokenDecimals: vaultTokenInfo.premiumTokenDecimals,
-    });
+    let vaultTokenInfo;
+    try {
+      vaultTokenInfo = await getVaultTokenInfo(vault, sepoliaProvider);
+      consola.log('Vault token info:', {
+        depositToken: vaultTokenInfo.depositToken,
+        conversionToken: vaultTokenInfo.conversionToken,
+        premiumToken: vaultTokenInfo.premiumToken,
+        depositTokenDecimals: vaultTokenInfo.depositTokenDecimals,
+        conversionTokenDecimals: vaultTokenInfo.conversionTokenDecimals,
+        premiumTokenDecimals: vaultTokenInfo.premiumTokenDecimals,
+      });
+    } catch (vaultError) {
+      consola.error('Failed to fetch vault token info:', vaultError);
+      consola.log('Falling back to default 18 decimals for all tokens');
+      // Fallback to 18 decimals if vault info fetching fails
+      vaultTokenInfo = {
+        depositToken: '0x0000000000000000000000000000000000000000',
+        conversionToken: '0x0000000000000000000000000000000000000000',
+        premiumToken: '0x0000000000000000000000000000000000000000',
+        depositTokenDecimals: 18,
+        conversionTokenDecimals: 18,
+        premiumTokenDecimals: 18,
+        strike: ethers.BigNumber.from(0),
+        expiry: 0,
+      };
+    }
 
     // Parse amounts using correct decimals
     const _amount = ethers.utils.parseUnits(
@@ -253,6 +271,25 @@ export async function executeDerifunWriteOptionJob(
       vaultTokenInfo.depositTokenDecimals
     );
 
+    // Step 1: Approve deposit token for vault factory
+    consola.log('Step 1: Approving deposit token for vault factory...');
+    const approvalHash = await approveDepositToken({
+      delegatorAddress: ethAddress as `0x${string}`,
+      tokenAddress: vaultTokenInfo.depositToken,
+      spenderAddress: DERIFUN_VAULT_FACTORY_ADDRESS,
+      amount: _amount.toString(),
+      rpcUrl: SEPOLIA_RPC_URL,
+    });
+
+    consola.log('Deposit token approval successful:', {
+      tokenAddress: vaultTokenInfo.depositToken,
+      spenderAddress: DERIFUN_VAULT_FACTORY_ADDRESS,
+      amount: _amount.toString(),
+      approvalHash,
+    });
+
+    // Step 2: Execute Derifun write option
+    consola.log('Step 2: Executing Derifun write option...');
     const writeOptionHash = await executeDerifunWriteOption({
       delegatorAddress: ethAddress as `0x${string}`,
       vault,
@@ -296,7 +333,8 @@ export async function executeDerifunWriteOptionJob(
       amount: amount,
       strike: strike,
       expiry,
-      txHash: writeOptionHash,
+      approvalHash,
+      writeOptionHash,
     });
   } catch (e) {
     // Catch-and-rethrow is usually an antipattern, but Agenda doesn't log failed job reasons to console
