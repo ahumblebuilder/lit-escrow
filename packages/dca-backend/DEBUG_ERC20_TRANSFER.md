@@ -6,6 +6,32 @@
 
 The ERC20 transfer tool precheck can fail for several reasons:
 
+#### **Parameter Mapping Issues** ⚠️ **COMMON**
+
+- **Wrong parameter names**: ERC20 transfer ability expects `to` and `chain`, not `recipientAddress` and `chainId`
+- **Wrong data types**: `chain` must be a string, not a number
+- **Missing required fields**: All required parameters must be provided
+
+**Fixed Parameter Mapping:**
+
+```javascript
+// ❌ Wrong (causes ZodError)
+{
+  chainId: 11155111,           // Should be 'chain'
+  recipientAddress: '0x...',   // Should be 'to'
+  tokenAddress: '0x...',
+  amount: '1000000000000000000'
+}
+
+// ✅ Correct
+{
+  chain: '11155111',           // String, not number
+  to: '0x...',                 // 'to' not 'recipientAddress'
+  tokenAddress: '0x...',
+  amount: '1000000000000000000'
+}
+```
+
 #### **Token Contract Issues**
 
 - **Invalid token address**: Ensure the token contract exists on Sepolia
