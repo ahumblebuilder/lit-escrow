@@ -7,6 +7,10 @@ import { createVincentUserMiddleware } from '@lit-protocol/vincent-app-sdk/expre
 import { getAppInfo, getPKPInfo, isAppUser } from '@lit-protocol/vincent-app-sdk/jwt';
 
 import { handleCreateTransferJobRoute, handleCancelTransferJobRoute } from './transfers';
+import {
+  handleCreateDerifunWriteOptionJobRoute,
+  handleCancelDerifunWriteOptionJobRoute,
+} from './derifunWriteOptions';
 import { userKey, VincentAuthenticatedRequest } from './types';
 import { env } from '../env';
 import { serviceLogger } from '../logger';
@@ -65,6 +69,19 @@ export const registerRoutes = (app: Express) => {
     middleware,
     setSentryUserMiddleware,
     handler(handleCancelTransferJobRoute)
+  );
+
+  app.post(
+    '/derifun-write-option-job',
+    middleware,
+    setSentryUserMiddleware,
+    handler(handleCreateDerifunWriteOptionJobRoute)
+  );
+  app.delete(
+    '/derifun-write-option-job/:jobId',
+    middleware,
+    setSentryUserMiddleware,
+    handler(handleCancelDerifunWriteOptionJobRoute)
   );
 
   serviceLogger.info(`Routes registered`);

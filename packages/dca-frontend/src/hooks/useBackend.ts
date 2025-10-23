@@ -21,6 +21,26 @@ export interface CreateTransferJobRequest {
   amount: number;
 }
 
+export type DerifunWriteOptionJob = {
+  id: string;
+  name: string;
+  nextRunAt: string;
+  enabled: boolean;
+};
+
+export interface CreateDerifunWriteOptionJobRequest {
+  vault: string;
+  amount: number;
+  strike: number;
+  expiry: number;
+  premiumPerUnit: number;
+  minDeposit: number;
+  maxDeposit: number;
+  validUntil: number;
+  quoteId: string;
+  signature: string;
+}
+
 export const useBackend = () => {
   const { authInfo } = useJwtContext();
   const vincentWebAuthClient = useVincentWebAuthClient(VITE_APP_ID);
@@ -81,9 +101,25 @@ export const useBackend = () => {
     [sendRequest]
   );
 
+  const createDerifunWriteOptionJob = useCallback(
+    async (derifunJob: CreateDerifunWriteOptionJobRequest) => {
+      return sendRequest<DerifunWriteOptionJob>('/derifun-write-option-job', 'POST', derifunJob);
+    },
+    [sendRequest]
+  );
+
+  const cancelDerifunWriteOptionJob = useCallback(
+    async (jobId: string) => {
+      return sendRequest<void>(`/derifun-write-option-job/${jobId}`, 'DELETE');
+    },
+    [sendRequest]
+  );
+
   return {
     createTransferJob,
     cancelTransferJob,
+    createDerifunWriteOptionJob,
+    cancelDerifunWriteOptionJob,
     getJwt,
   };
 };
