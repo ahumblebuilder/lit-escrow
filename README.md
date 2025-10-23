@@ -1,117 +1,120 @@
-# Vincent Starter App
+# Vincent ERC20 Transfer Scheduler
 
-A monorepo that powers the _Vincent DCA_ demo application.
+A minimal implementation of a Vincent-powered ERC20 transfer scheduler that allows users to schedule automated token transfers on Sepolia testnet.
 
-This project demonstrates how to schedule and execute recurring DCA (Dollar-Cost Averaging) swaps on behalf of end-users using a Vincent App and delegated agent wallets.
+## Overview
 
-## Prerequisites
+This application demonstrates how to use Vincent abilities to schedule and execute recurring ERC20 token transfers on behalf of users. It's a simplified version of the original DCA (Dollar-Cost Averaging) application, focused on basic token transfers.
+
+## Features
+
+- **Simple Transfer Scheduling**: Users can create jobs that transfer a specified amount of tokens every minute
+- **Vincent Integration**: Uses Vincent abilities for secure, delegated token transfers
+- **Sepolia Testnet**: Configured to work with Sepolia testnet and a specific ERC20 token
+- **Minimal UI**: Clean, simple interface for creating transfer jobs
+
+## Architecture
+
+### Backend (`packages/dca-backend`)
+
+- **Express API**: RESTful endpoints for creating and managing transfer jobs
+- **Agenda Scheduler**: Job scheduling system that runs transfer jobs every minute
+- **MongoDB**: Stores transfer job records and transaction history
+- **Vincent Abilities**: Uses `@lit-protocol/vincent-ability-erc20-transfer` for token transfers
+
+### Frontend (`packages/dca-frontend`)
+
+- **React App**: Simple presentation page with form to create transfer jobs
+- **Vincent Auth**: Integration with Vincent for user authentication and delegation
+
+## Token Configuration
+
+The application is configured to work with a specific ERC20 token on Sepolia:
+
+- **Token Address**: `0x8E3D26D7f8b0508Bc2A9FC20342FF06FEEad1089`
+- **Network**: Sepolia Testnet (Chain ID: 11155111)
+
+## Setup
+
+### Prerequisites
 
 - Node ^22.16.0
 - pnpm ^10.7.0
-- Docker or a local MongoDB instance
-- A Vincent App with ERC20 approval and Uniswap swap abilities
+- Docker or local MongoDB instance
+- A Vincent App with ERC20 transfer abilities
 
-## Monorepo Structure
+### Environment Variables
 
-This codebase is composed of three main parts:
+Create `.env` files in the root and backend package with the following variables:
 
-- Frontend: React app where users can create, edit, and delete DCA tasks.
-- Database: MongoDB to persist DCA tasks.
-- Backend (Node.js):
-  - Express.js API server used by the frontend
-  - Agenda-based job scheduler that runs DCA jobs
-  - Integration with a Vincent App to execute swaps on behalf of users
-    - Vincent ERC20 Approval ability: authorizes Uniswap to spend user tokens
-    - Vincent Uniswap Swap ability: executes the actual token swaps
-
-## Packages
-
-| Package                                         | Purpose                                                                          |
-| ----------------------------------------------- | -------------------------------------------------------------------------------- |
-| [dca-frontend](packages/dca-frontend/README.md) | Frontend for end-users to define DCA tasks to be run on a schedule               |
-| [dca-backend](packages/dca-backend/README.md)   | Backend REST API and worker instance using NodeJS; deployed to Heroku currently. |
-
-## Vincent App
-
-To execute operations on behalf of your users (delegators), you need a Vincent App to which they can delegate their agent wallet.
-
-A demo Vincent App already exists: [wBTC DCA](https://dashboard.heyvincent.ai/explorer/appId/9796398001) in the [Vincent Dashboard](https://dashboard.heyvincent.ai/).
-
-You can access the demo app frontend at: https://dca.heyvincent.ai/
-
-### Create your own Vincent App
-
-To run this code and sign on behalf of your delegators, create your own Vincent App:
-
-1. Go to the [Vincent Dashboard](https://dashboard.heyvincent.ai/) and log in as a builder.
-2. Create a new app similar to [wBTC DCA](https://dashboard.heyvincent.ai/user/appId/9796398001/connect).
-3. Add the ERC20 Approval ability.
-4. Add the Uniswap Swap ability.
-5. Publish the app.
-6. Once users can connect to it, configure the backend with your App ID and the delegatee private key via environment variables. You can use the Deploy on Railway button below to deploy the entire app.
-7. Once deployed, you'll need to update the `App User URL` and `Redirect URIs` to the URL deployed from Railway.
-
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/UY2g5I?referralCode=iNEMKY&utm_medium=integration&utm_source=template&utm_campaign=generic)
-
-## Quick Start
-
-Install dependencies and build the packages (works for both local and production setups):
-
-```zsh
-pnpm install && pnpm build
+```env
+# Backend (.env)
+SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_INFURA_KEY
+MONGODB_URI=mongodb://localhost:27017/transfer-scheduler
+VINCENT_APP_ID=your_vincent_app_id
+VINCENT_DELEGATEE_PRIVATE_KEY=your_delegatee_private_key
+ALLOWED_AUDIENCE=https://your-frontend-domain.com
+CORS_ALLOWED_DOMAIN=https://your-frontend-domain.com
+PORT=3001
+IS_DEVELOPMENT=true
 ```
 
-Note: remember to enable [Corepack](https://github.com/nodejs/corepack): `corepack enable`
+```env
+# Frontend (.env)
+VITE_APP_ID=your_vincent_app_id
+VITE_BACKEND_URL=http://localhost:3001
+VITE_REDIRECT_URI=http://localhost:3000
+```
 
-## Local Development
+### Installation
 
-Local development uses `dotenvx` to load environment variables from `.env` files. You should have a `.env` at the repository root and one for each package that needs it.
+```bash
+# Install dependencies
+pnpm install
 
-Each project includes a `.env.example` with placeholders and defaults you can copy and fill in.
+# Build packages
+pnpm build
 
-### Start a local MongoDB
-
-A Dockerfile is provided to run MongoDB locally:
-
-```zsh
+# Start MongoDB (if using Docker)
 pnpm -r mongo:build
-```
+pnpm -r mongo:up
 
-### Run all services
-
-After setting environment variables and starting the database, run:
-
-```zsh
+# Start development servers
 pnpm dev
 ```
 
-## Production
+## Usage
 
-Production does not use `dotenvx`. Inject environment variables via your platform’s secret manager or environment configuration—do not write them to the runtime filesystem.
+1. **Connect with Vincent**: Users must first connect their wallet with Vincent and delegate to your app
+2. **Create Transfer Job**: Fill in the recipient address and amount to transfer
+3. **Automatic Execution**: The job will run every minute, transferring the specified amount
 
-Then start the services with:
+## API Endpoints
 
-```zsh
-pnpm start
-```
+- `POST /transfer-job` - Create a new transfer job
+- `DELETE /transfer-job/:jobId` - Cancel a transfer job
 
-## Notes and Gotchas
+## Vincent App Setup
 
-- You will most likely not run API and Worker instances on the same server.
-- The abilities you execute MUST match the exact versions connected in each user’s agent wallet.
-  - If you update an ability, users must reconnect; you cannot use a newer version they haven’t approved.
-  - If you support multiple versions of the same Vincent App, your server may need to run multiple versions of abilities side-by-side.
-  - Install specific versions of abilities in your app to avoid version conflicts.
-- Users can revoke or update their connection at any time; handle revocations and version changes gracefully.
-- Always call prepare and precheck functions for abilities to avoid preventable errors.
-- Users’ agent wallets send their own transactions. Ensure they have sufficient funds for gas, unless you plan to sponsor it.
+To use this application, you need to create a Vincent App with ERC20 transfer abilities:
 
-## Disclaimers
+1. Go to the Vincent Dashboard
+2. Create a new app
+3. Add the ERC20 Transfer ability
+4. Configure the app for Sepolia testnet
+5. Update the `VINCENT_APP_ID` in your environment variables
 
-- This is a demo application and is not intended for production use without considerable modifications.
-- The software is provided “as is”, without warranty of any kind, express or implied, including but
-  not limited to the warranties of merchantability, fitness for a particular purpose and
-  noninfringement. We make no guarantees about its stability or suitability for production use. It
-  is provided for demo and educational purposes.
-- It's your responsibility to comply with all applicable laws and regulations for your jurisdiction
-  with respect to the use of this software.
+## Development
+
+The application uses a monorepo structure with separate packages for frontend and backend. The backend runs both the API server and job worker, while the frontend provides a simple interface for users.
+
+## Notes
+
+- This is a minimal implementation for demonstration purposes
+- Users must have sufficient token balance for transfers to succeed
+- Jobs run every minute by default (configurable in the code)
+- All transfers are recorded in the database with transaction hashes
+
+## License
+
+This project is provided for educational and demonstration purposes.

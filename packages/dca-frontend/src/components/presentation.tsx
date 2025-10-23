@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -9,11 +9,40 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useBackend } from '@/hooks/useBackend';
 
 export const Presentation: React.FC = () => {
-  const { getJwt } = useBackend();
+  const { getJwt, createTransferJob } = useBackend();
+  const [recipientAddress, setRecipientAddress] = useState('');
+  const [amount, setAmount] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleCreateJob = async () => {
+    if (!recipientAddress || !amount) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      await createTransferJob({
+        recipientAddress,
+        tokenAddress: '0x8E3D26D7f8b0508Bc2A9FC20342FF06FEEad1089', // Fixed token address
+        amount: parseFloat(amount),
+      });
+      alert('Transfer job created successfully! It will run every minute.');
+      setRecipientAddress('');
+      setAmount('');
+    } catch (error) {
+      console.error('Error creating transfer job:', error);
+      alert('Failed to create transfer job. Please try again.');
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-2xl">
@@ -30,7 +59,7 @@ export const Presentation: React.FC = () => {
               color: 'var(--footer-text-color, #121212)',
             }}
           >
-            Vincent wBTC DCA Agent
+            Vincent ERC20 Transfer Scheduler
           </CardTitle>
           <CardDescription
             className="uppercase tracking-widest"
@@ -41,7 +70,7 @@ export const Presentation: React.FC = () => {
               color: '#FF4205',
             }}
           >
-            Automated Dollar-Cost Averaging
+            Automated Token Transfers
           </CardDescription>
         </CardHeader>
 
@@ -55,8 +84,33 @@ export const Presentation: React.FC = () => {
               color: 'var(--footer-text-color, #121212)',
             }}
           >
-            Secure and verifiable DCA strategies for your crypto investments on Base.
+            Schedule automated ERC20 token transfers on Sepolia testnet.
           </p>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="recipient">Recipient Address</Label>
+              <Input
+                id="recipient"
+                type="text"
+                placeholder="0x..."
+                value={recipientAddress}
+                onChange={(e) => setRecipientAddress(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount to Transfer</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.000001"
+                placeholder="1.0"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+          </div>
 
           <p
             className="text-sm text-center"
@@ -65,23 +119,15 @@ export const Presentation: React.FC = () => {
               color: 'var(--footer-text-color, #121212)',
             }}
           >
-            This application allows you to set up automated dollar-cost-averaging for your wBTC
-            investments on Base. Support for more chains coming soon.
-          </p>
-
-          <p
-            className="text-sm text-center"
-            style={{
-              fontFamily: '"Encode Sans Semi Expanded", system-ui, sans-serif',
-              color: 'var(--footer-text-color, #121212)',
-            }}
-          >
-            To get started, connect with Vincent to manage your DCA schedules.
+            This will create a job that transfers the specified amount of tokens every minute.
           </p>
         </CardContent>
 
         <CardFooter className="flex flex-col items-center gap-3 pt-4">
-          <Button onClick={getJwt} variant="primary" size="lg">
+          <Button onClick={handleCreateJob} variant="primary" size="lg" disabled={isCreating}>
+            {isCreating ? 'Creating Job...' : 'Create Transfer Job'}
+          </Button>
+          <Button onClick={getJwt} variant="outline" size="lg">
             Connect with Vincent
           </Button>
           <a

@@ -8,32 +8,17 @@ const { VITE_APP_ID, VITE_BACKEND_URL, VITE_REDIRECT_URI } = env;
 
 type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
-export type DCA = {
-  lastRunAt: string;
+export type TransferJob = {
+  id: string;
+  name: string;
   nextRunAt: string;
-  lastFinishedAt: string;
-  failedAt: string;
-  _id: string;
-  disabled: boolean;
-  failReason: string;
-  data: {
-    name: string;
-    purchaseAmount: number;
-    purchaseIntervalHuman: string;
-    vincentAppVersion: number;
-    pkpInfo: {
-      ethAddress: string;
-      publicKey: string;
-      tokenId: string;
-    };
-    updatedAt: string;
-  };
+  enabled: boolean;
 };
 
-export interface CreateDCARequest {
-  name: string;
-  purchaseAmount: string;
-  purchaseIntervalHuman: string;
+export interface CreateTransferJobRequest {
+  recipientAddress: string;
+  tokenAddress: string;
+  amount: number;
 }
 
 export const useBackend = () => {
@@ -82,52 +67,23 @@ export const useBackend = () => {
     [authInfo]
   );
 
-  const createDCA = useCallback(
-    async (dca: CreateDCARequest) => {
-      return sendRequest<DCA>('/schedule', 'POST', dca);
+  const createTransferJob = useCallback(
+    async (transferJob: CreateTransferJobRequest) => {
+      return sendRequest<TransferJob>('/transfer-job', 'POST', transferJob);
     },
     [sendRequest]
   );
 
-  const getDCAs = useCallback(async () => {
-    return sendRequest<DCA[]>('/schedules', 'GET');
-  }, [sendRequest]);
-
-  const disableDCA = useCallback(
-    async (scheduleId: string) => {
-      return sendRequest<DCA>(`/schedules/${scheduleId}/disable`, 'PUT');
-    },
-    [sendRequest]
-  );
-
-  const enableDCA = useCallback(
-    async (scheduleId: string) => {
-      return sendRequest<DCA>(`/schedules/${scheduleId}/enable`, 'PUT');
-    },
-    [sendRequest]
-  );
-
-  const editDCA = useCallback(
-    async (scheduleId: string, dca: CreateDCARequest) => {
-      return sendRequest<DCA>(`/schedules/${scheduleId}`, 'PUT', dca);
-    },
-    [sendRequest]
-  );
-
-  const deleteDCA = useCallback(
-    async (scheduleId: string) => {
-      return sendRequest<DCA>(`/schedules/${scheduleId}`, 'DELETE');
+  const cancelTransferJob = useCallback(
+    async (jobId: string) => {
+      return sendRequest<void>(`/transfer-job/${jobId}`, 'DELETE');
     },
     [sendRequest]
   );
 
   return {
-    createDCA,
-    deleteDCA,
-    disableDCA,
-    editDCA,
-    enableDCA,
-    getDCAs,
+    createTransferJob,
+    cancelTransferJob,
     getJwt,
   };
 };

@@ -1,9 +1,9 @@
 {
-  "name": "vincent-dca",
+  "name": "vincent-transfer-scheduler",
   "private": true,
   "version": "1.0.0",
-  "description": "Monorepo for vincent DCA backend + frontend",
-  "homepage": "https://github.com/LIT-protocol/vincent-dca",
+  "description": "Monorepo for vincent ERC20 transfer scheduler backend + frontend",
+  "homepage": "https://github.com/LIT-protocol/vincent-transfer-scheduler",
   "engines": {
     "node": "^22.16.0",
     "pnpm": "10.7.0"
