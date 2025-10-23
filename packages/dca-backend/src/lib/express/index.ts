@@ -49,6 +49,11 @@ export const registerRoutes = (app: Express) => {
   }
   app.use(cors(corsConfig));
 
+  // Health check endpoint
+  app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
   app.post(
     '/transfer-job',
     middleware,

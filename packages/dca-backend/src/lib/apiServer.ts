@@ -5,6 +5,7 @@ import { env } from './env';
 import { registerRoutes } from './express';
 import { serviceLogger } from './logger';
 import { connectToMongoDB } from './mongo/mongoose';
+import { getAgenda } from './agenda/agendaClient';
 
 const app = express();
 
@@ -17,6 +18,10 @@ const { MONGODB_URI, PORT } = env;
 const startApiServer = async () => {
   await connectToMongoDB(MONGODB_URI);
   serviceLogger.info('Mongo is connected. Starting server...');
+
+  // Set up agenda instance for the Express app
+  const agenda = getAgenda();
+  app.locals.agenda = agenda;
 
   await new Promise((resolve, reject) => {
     // The `listen` method launches a web server.

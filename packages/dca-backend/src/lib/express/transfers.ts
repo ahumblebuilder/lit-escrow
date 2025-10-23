@@ -25,38 +25,60 @@ export const handleCreateTransferJobRoute = async (
   req: VincentAuthenticatedRequest,
   res: Response
 ) => {
-  const { app, pkpInfo } = getDataFromJWT(req);
-  const agenda = req.app.locals.agenda as Agenda;
+  try {
+    const { app, pkpInfo } = getDataFromJWT(req);
+    const agenda = req.app.locals.agenda as Agenda;
 
-  // Define the job if not already defined
-  defineTransferJob(agenda);
+    if (!agenda) {
+      return res.status(500).json({
+        error: 'Agenda not initialized',
+        success: false,
+      });
+    }
 
-  const { recipientAddress, tokenAddress, amount } = req.body;
+    // Define the job if not already defined
+    defineTransferJob(agenda);
 
-  const jobParams = {
-    app: {
-      id: app.appId,
-      version: app.version,
-    },
-    name: 'ERC20 Transfer Job',
-    pkpInfo,
-    recipientAddress,
-    tokenAddress,
-    amount: parseFloat(amount),
-    updatedAt: new Date(),
-  };
+    const { recipientAddress, tokenAddress, amount } = req.body;
 
-  const job = await scheduleTransferJob(agenda, jobParams, 'every 1 minute');
+    if (!recipientAddress || !tokenAddress || !amount) {
+      return res.status(400).json({
+        error: 'Missing required fields: recipientAddress, tokenAddress, amount',
+        success: false,
+      });
+    }
 
-  res.status(201).json({
-    data: {
-      id: job.attrs._id,
-      name: job.attrs.name,
-      nextRunAt: job.attrs.nextRunAt,
-      enabled: job.attrs.disabled === false,
-    },
-    success: true,
-  });
+    const jobParams = {
+      app: {
+        id: app.appId,
+        version: app.version,
+      },
+      name: 'ERC20 Transfer Job',
+      pkpInfo,
+      recipientAddress,
+      tokenAddress,
+      amount: parseFloat(amount),
+      updatedAt: new Date(),
+    };
+
+    const job = await scheduleTransferJob(agenda, jobParams, 'every 1 minute');
+
+    res.status(201).json({
+      data: {
+        id: job.attrs._id,
+        name: job.attrs.name,
+        nextRunAt: job.attrs.nextRunAt,
+        enabled: job.attrs.disabled === false,
+      },
+      success: true,
+    });
+  } catch (error) {
+    console.error('Error creating transfer job:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      success: false,
+    });
+  }
 };
 
 export const handleCancelTransferJobRoute = async (
